@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MCPStatus } from "@/components/mcp-status";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -93,15 +94,18 @@ export function ChatContainer({ className }: ChatContainerProps) {
             </SelectContent>
           </Select>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearChat}
-          disabled={messages.length === 0}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Clear Chat
-        </Button>
+        <div className="flex items-center gap-2">
+          <MCPStatus />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearChat}
+            disabled={messages.length === 0}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Clear Chat
+          </Button>
+        </div>
       </div>
 
       {/* Messages Area */}

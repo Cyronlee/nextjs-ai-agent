@@ -11,6 +11,11 @@ import {
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
+import {
+  getAllMCPTools,
+  getMCPManager,
+  MCP_SERVERS_CONFIG,
+} from "@/lib/mcp";
 
 // Define local tools for the agent
 const tools = {
@@ -110,13 +115,43 @@ export async function POST(req: Request) {
     model = openai("gpt-4o-mini");
   }
 
+  // Initialize MCP manager and connect to servers
+  const mcpManager = getMCPManager();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mcpTools: Record<string, any> = {};
+
+  try {
+    // Connect to MCP servers if not already connected
+    const connectionPromises = Object.entries(MCP_SERVERS_CONFIG).map(
+      async ([serverName, config]) => {
+        if (!mcpManager.isConnected(serverName)) {
+          try {
+            await mcpManager.connect(serverName, config);
+          } catch (error) {
+            console.error(`Failed to connect to MCP server ${serverName}:`, error);
+          }
+        }
+      }
+    );
+
+    await Promise.all(connectionPromises);
+
+    // Get all MCP tools
+    mcpTools = getAllMCPTools(mcpManager);
+  } catch (error) {
+    console.error("Error initializing MCP tools:", error);
+  }
+
+  // Combine local tools with MCP tools
+  const allTools = { ...tools, ...mcpTools };
+
   const result = streamText({
     model,
     system:
-      "You are a helpful AI assistant with access to various tools. Use the tools when appropriate to provide accurate and helpful information.",
+      "You are a helpful AI assistant with access to various tools. Use the tools when appropriate to provide accurate and helpful information. You have access to local tools (like getWeather, getCurrentTime, calculate, searchInfo) and MCP tools (like git operations and filesystem operations). When using MCP tools, the tool names are prefixed with the server name (e.g., 'git_status', 'filesystem_read_file').",
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
-    tools,
+    tools: allTools,
   });
 
   return result.toUIMessageStreamResponse();
