@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+## Tech Stack
+
+- Bun
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Shadcn/ui
+- Zod
+
+## UI Components
+
+- Choose proper ui components from `@/components/ui/`
+- Do not use Card component unless I request it
+
+## Icon
+
+- Use `lucide-react` for icons
+
+## Custom Components
+
+- Always provide `className` prop and use `cn() from "@/lib/utils` utility to merge Tailwind classes
+
+## Toast Notifications
+
+- Use `import { toast } from 'sonner'` for all notifications
+- Use semantic methods: `toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`
+
+## Import Conventions
+
+- Use `@/` prefix for internal imports
+
+## Quality Standards
+
+- Ensure `npm run lint` and `npm run build` passes before commits
+- All in English
