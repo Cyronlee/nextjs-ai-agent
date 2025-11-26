@@ -148,7 +148,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model,
     system:
-      "You are a helpful AI assistant with access to various tools. Use the tools when appropriate to provide accurate and helpful information. You have access to local tools (like getWeather, getCurrentTime, calculate, searchInfo) and MCP tools (like git operations and filesystem operations). When using MCP tools, the tool names are prefixed with the server name (e.g., 'git_status', 'filesystem_read_file').",
+      "You are a helpful AI assistant with access to various tools and multi-modal capabilities. Use the tools when appropriate to provide accurate and helpful information. You have access to local tools (like getWeather, getCurrentTime, calculate, searchInfo) and MCP tools (like git operations and filesystem operations). When using MCP tools, the tool names are prefixed with the server name (e.g., 'git_status', 'filesystem_read_file'). You can also process and analyze various file types including PDFs, documents (docx), spreadsheets (xlsx), text files, images, videos, and audio files. When users share files with you, analyze their contents and provide helpful insights.",
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
     tools: allTools,

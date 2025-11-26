@@ -18,9 +18,43 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChatInput } from "./chat-input";
 import { ChatMessages } from "./chat-messages";
+import { FileUploadDialog } from "./file-upload-dialog";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
 
 interface ChatContainerProps {
   className?: string;
+}
+
+// Helper function to convert files to data URLs
+async function convertFilesToDataURLs(
+  files: FileWithPreview[]
+): Promise<
+  { type: "file"; filename: string; mediaType: string; url: string }[]
+> {
+  return Promise.all(
+    files.map(
+      (fileWithPreview) =>
+        new Promise<{
+          type: "file";
+          filename: string;
+          mediaType: string;
+          url: string;
+        }>((resolve, reject) => {
+          const file = fileWithPreview.file as File;
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              type: "file",
+              filename: file.name,
+              mediaType: file.type,
+              url: reader.result as string, // Data URL
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+    )
+  );
 }
 
 export function ChatContainer({ className }: ChatContainerProps) {
@@ -30,6 +64,8 @@ export function ChatContainer({ className }: ChatContainerProps) {
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const lastMessageCountRef = useRef(0);
+  const [files, setFiles] = useState<FileWithPreview[]>([]);
+  const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
 
   const { messages, sendMessage, error } = useChat<ChatMessage>({
     transport: new DefaultChatTransport({
@@ -58,18 +94,34 @@ export function ChatContainer({ className }: ChatContainerProps) {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!input.trim() || isProcessing) return;
 
     setIsProcessing(true);
-    sendMessage({
-      text: input,
-    });
-    setInput("");
+
+    try {
+      // Convert files to data URLs
+      const fileParts =
+        files && files.length > 0 ? await convertFilesToDataURLs(files) : [];
+
+      // Send message with text and file parts
+      sendMessage({
+        role: "user",
+        parts: [{ type: "text", text: input }, ...fileParts],
+      });
+
+      // Clear input only, keep files for the session
+      setInput("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message with files");
+      setIsProcessing(false);
+    }
   };
 
   const handleClearChat = () => {
     window.location.reload();
+    setFiles([]);
     toast.success("Chat cleared");
   };
 
@@ -125,8 +177,18 @@ export function ChatContainer({ className }: ChatContainerProps) {
           onChange={setInput}
           onSubmit={handleSubmit}
           disabled={isProcessing}
+          onAttachmentClick={() => setIsFileDialogOpen(true)}
+          fileCount={files.length}
         />
       </div>
+
+      {/* File Upload Dialog */}
+      <FileUploadDialog
+        open={isFileDialogOpen}
+        onOpenChange={setIsFileDialogOpen}
+        files={files}
+        onFilesChange={setFiles}
+      />
     </div>
   );
 }
