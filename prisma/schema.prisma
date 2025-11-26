@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Model Provider - stores AI model providers (OpenAI, Google, etc.)
+model ModelProvider {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "openai", "google"
+  displayName String   // e.g., "OpenAI", "Google Gemini"
+  apiKey      String?  // API key for the provider
+  models      String   // JSON array with model info: [{ id, name, isDefault }]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  messages Message[]
+
+  @@map("model_providers")
+}
+
+// Agent - stores AI agent configurations
+model Agent {
+  id                 String   @id @default(cuid())
+  name               String
+  description        String?
+  systemPrompt       String   // The agent's system prompt
+  mcpServerConfig    String?  // JSON for MCP servers configuration
+  disabledMcpServer  String?  // JSON array of disabled MCP server names
+  config             String?  // JSON for additional configuration
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  conversations Conversation[]
+
+  @@map("agents")
+}
+
+// Conversation - stores conversation sessions
+model Conversation {
+  id        String   @id @default(cuid())
+  agentId   String
+  title     String?  // Optional conversation title
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  agent    Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  messages Message[]
+  files    File[]
+
+  @@map("conversations")
+}
+
+// Message - stores individual chat messages
+model Message {
+  id              String   @id @default(cuid())
+  conversationId  String
+  modelProviderId String
+  model           String   // e.g., "gpt-4o-mini", "gemini-2.0-flash-exp"
+  role            String   // "user", "assistant", "system"
+  parts           String   // JSON array for multi-part content (text, images, files, tool calls, etc.)
+  token           Int?     // Token count for this message
+  createdAt       DateTime @default(now())
+
+  // Relations
+  conversation  Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  modelProvider ModelProvider @relation(fields: [modelProviderId], references: [id])
+
+  @@map("messages")
+}
+
+// File - stores file information (content stored in filesystem)
+model File {
+  id             String   @id @default(cuid())
+  conversationId String
+  filename       String   // Generated filename for storage
+  originalName   String   // Original filename from user
+  mimeType       String
+  size           Int      // Size in bytes
+  path           String   // Path in filesystem
+  createdAt      DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
