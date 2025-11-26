@@ -10,6 +10,7 @@ alwaysApply: true
 - Tailwind CSS
 - Shadcn/ui
 - Zod
+- ai-sdk v5
 
 ## UI Components
 
@@ -35,5 +36,5 @@ alwaysApply: true
 
 ## Quality Standards
 
-- Ensure `npm run lint` and `npm run build` passes before commits
+- Ensure `bun run lint` and `bun run build` passes before commits
 - All in English
