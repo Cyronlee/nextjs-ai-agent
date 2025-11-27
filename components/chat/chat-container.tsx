@@ -23,6 +23,9 @@ import type { FileWithPreview } from "@/hooks/use-file-upload";
 
 interface ChatContainerProps {
   className?: string;
+  conversationId: string;
+  initialMessages?: ChatMessage[];
+  conversationTitle?: string;
 }
 
 // Helper function to convert files to data URLs
@@ -57,7 +60,12 @@ async function convertFilesToDataURLs(
   );
 }
 
-export function ChatContainer({ className }: ChatContainerProps) {
+export function ChatContainer({
+  className,
+  conversationId,
+  initialMessages = [],
+  conversationTitle = "New Conversation",
+}: ChatContainerProps) {
   const [input, setInput] = useState("");
   const [modelProvider, setModelProvider] = useState<"openai" | "google">(
     "google"
@@ -68,10 +76,23 @@ export function ChatContainer({ className }: ChatContainerProps) {
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
 
   const { messages, sendMessage, error } = useChat<ChatMessage>({
+    id: conversationId,
+    messages: initialMessages,
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: {
         modelProvider,
+        conversationId,
+      },
+      // Only send the last message to the server
+      prepareSendMessagesRequest({ messages, id }) {
+        return {
+          body: {
+            message: messages[messages.length - 1],
+            conversationId: id,
+            modelProvider,
+          },
+        };
       },
     }),
     onError: (error) => {
@@ -119,10 +140,24 @@ export function ChatContainer({ className }: ChatContainerProps) {
     }
   };
 
-  const handleClearChat = () => {
-    window.location.reload();
-    setFiles([]);
-    toast.success("Chat cleared");
+  const handleClearChat = async () => {
+    // Create a new conversation
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create conversation");
+      }
+
+      const { id } = await response.json();
+      window.location.href = `/chat/${id}`;
+      toast.success("New conversation started");
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      toast.error("Failed to create new conversation");
+    }
   };
 
   return (
@@ -130,7 +165,7 @@ export function ChatContainer({ className }: ChatContainerProps) {
       {/* Header */}
       <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-lg">AI Agent Chat</h2>
+          <h2 className="font-semibold text-lg">{conversationTitle}</h2>
           <Select
             value={modelProvider}
             onValueChange={(value) =>
@@ -148,14 +183,9 @@ export function ChatContainer({ className }: ChatContainerProps) {
         </div>
         <div className="flex items-center gap-2">
           <MCPStatus />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClearChat}
-            disabled={messages.length === 0}
-          >
+          <Button variant="outline" size="sm" onClick={handleClearChat}>
             <Trash2 className="mr-2 h-4 w-4" />
-            Clear Chat
+            New Chat
           </Button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import {
   type UIDataTypes,
   type UIMessage,
   convertToModelMessages,
+  createIdGenerator,
   stepCountIs,
   streamText,
   tool,
@@ -11,11 +12,8 @@ import {
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
-import {
-  getAllMCPTools,
-  getMCPManager,
-  MCP_SERVERS_CONFIG,
-} from "@/lib/mcp";
+import { getAllMCPTools, getMCPManager, MCP_SERVERS_CONFIG } from "@/lib/mcp";
+import { loadConversation, saveMessages } from "@/lib/conversation";
 
 // Define local tools for the agent
 const tools = {
@@ -100,20 +98,34 @@ export type ChatMessage = UIMessage<never, UIDataTypes, ChatTools>;
 
 export async function POST(req: Request) {
   const {
-    messages,
+    message,
+    conversationId,
     modelProvider,
-  }: { messages: ChatMessage[]; modelProvider?: string } = await req.json();
+  }: {
+    message?: ChatMessage;
+    conversationId: string;
+    modelProvider?: string;
+  } = await req.json();
 
   // Determine which model to use
   const provider =
     modelProvider || process.env.DEFAULT_MODEL_PROVIDER || "openai";
 
   let model;
+  let modelName: string;
   if (provider === "google") {
-    model = google("gemini-2.0-flash-exp");
+    modelName = "gemini-2.0-flash-exp";
+    model = google(modelName);
   } else {
-    model = openai("gpt-4o-mini");
+    modelName = "gpt-4o-mini";
+    model = openai(modelName);
   }
+
+  // Load previous messages from database
+  const previousMessages = await loadConversation(conversationId);
+
+  // Append new message if provided
+  const messages = message ? [...previousMessages, message] : previousMessages;
 
   // Initialize MCP manager and connect to servers
   const mcpManager = getMCPManager();
@@ -128,7 +140,10 @@ export async function POST(req: Request) {
           try {
             await mcpManager.connect(serverName, config);
           } catch (error) {
-            console.error(`Failed to connect to MCP server ${serverName}:`, error);
+            console.error(
+              `Failed to connect to MCP server ${serverName}:`,
+              error
+            );
           }
         }
       }
@@ -154,5 +169,28 @@ export async function POST(req: Request) {
     tools: allTools,
   });
 
-  return result.toUIMessageStreamResponse();
+  // Consume the stream to ensure it runs to completion even when client disconnects
+  result.consumeStream();
+
+  return result.toUIMessageStreamResponse({
+    originalMessages: messages,
+    // Generate server-side IDs for persistence
+    generateMessageId: createIdGenerator({
+      prefix: "msg",
+      size: 16,
+    }),
+    onFinish: async ({ messages: finishedMessages }) => {
+      // Save messages to database
+      try {
+        await saveMessages(
+          conversationId,
+          finishedMessages,
+          provider,
+          modelName
+        );
+      } catch (error) {
+        console.error("Error saving messages:", error);
+      }
+    },
+  });
 }
