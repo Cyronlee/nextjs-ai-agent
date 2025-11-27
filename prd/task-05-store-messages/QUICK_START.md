@@ -20,16 +20,19 @@ GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key
 ## Setup Steps
 
 1. **Install dependencies** (if not already done):
+
    ```bash
    bun install
    ```
 
 2. **Push database schema**:
+
    ```bash
    bun run db:push
    ```
 
 3. **Start the development server**:
+
    ```bash
    bun run dev
    ```
@@ -55,11 +58,13 @@ GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key
 ### 3. Test Database Storage
 
 View the database using Prisma Studio:
+
 ```bash
 bun run db:studio
 ```
 
 Navigate to:
+
 - `Conversation` table - Should see your conversations
 - `Message` table - Should see all messages with their parts as JSON
 
@@ -75,6 +80,7 @@ Navigate to:
 ### "Failed to create conversation"
 
 Make sure `NEXT_PUBLIC_APP_URL` is set in your `.env.local` file:
+
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -82,6 +88,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### Database errors
 
 Reset the database:
+
 ```bash
 bun run db:reset
 bun run db:push
@@ -131,29 +138,34 @@ To extend the implementation:
 ## API Reference
 
 ### Create Conversation
+
 ```bash
 POST /api/conversations
 Response: { id: string, title: string }
 ```
 
 ### Get Conversation
+
 ```bash
 GET /api/conversations/{id}
 Response: { id, title, messages: UIMessage[], ... }
 ```
 
 ### Update Conversation
+
 ```bash
 PATCH /api/conversations/{id}
 Body: { title: string }
 ```
 
 ### Delete Conversation
+
 ```bash
 DELETE /api/conversations/{id}
 ```
 
 ### Chat (Stream)
+
 ```bash
 POST /api/chat
 Body: {
@@ -163,4 +175,3 @@ Body: {
 }
 Response: UIMessageStream
 ```
-

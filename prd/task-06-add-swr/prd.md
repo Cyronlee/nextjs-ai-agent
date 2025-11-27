@@ -1,0 +1,2 @@
+- use `import useSWR, { mutate } from 'swr'` to fetch data and mutate data for GET apis
+- add global config for swr, like `{ revalidateOnFocus: false, revalidateOnReconnect: false }- modify @components/nav-projects.tsx component name and content, let it render conversation list

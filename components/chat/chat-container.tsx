@@ -16,6 +16,7 @@ import { DefaultChatTransport } from "ai";
 import { Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { ChatInput } from "./chat-input";
 import { ChatMessages } from "./chat-messages";
 import { FileUploadDialog } from "./file-upload-dialog";
@@ -152,6 +153,10 @@ export function ChatContainer({
       }
 
       const { id } = await response.json();
+
+      // Mutate the conversations list to refetch
+      mutate("/api/conversations");
+
       window.location.href = `/chat/${id}`;
       toast.success("New conversation started");
     } catch (error) {
