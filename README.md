@@ -2,6 +2,8 @@
 
 A modern AI chatbot application built with Next.js, AI SDK v5, and Tailwind CSS. Features a clean chat interface with support for multiple AI models (OpenAI and Google Gemini) and tool calling capabilities.
 
+![AgentX](./public/img/screenshot-01.png)
+
 ## Features
 
 - 🤖 **Multi-Model Support**: Switch between OpenAI GPT-4o and Google Gemini models
@@ -55,12 +57,14 @@ A modern AI chatbot application built with Next.js, AI SDK v5, and Tailwind CSS.
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <your-repo-url>
 cd nextjs-ai-agent
 ```
 
 2. Install dependencies:
+
 ```bash
 bun install
 ```
@@ -81,6 +85,7 @@ DEFAULT_MODEL_PROVIDER=openai
 ```
 
 4. Run the development server:
+
 ```bash
 bun dev
 ```

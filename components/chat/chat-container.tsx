@@ -169,9 +169,25 @@ export function ChatContainer({
   return (
     <div className={cn("flex h-full flex-col", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b p-4">
-        <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-lg">{conversationTitle}</h2>
+      <div className="flex items-center border-b px-4 py-3">
+        <h2 className="font-semibold text-lg">{conversationTitle}</h2>
+      </div>
+
+      {/* Messages Area */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <ChatMessages messages={messages} onRegenerate={() => regenerate()} />
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="border-t bg-destructive/10 p-3 text-sm text-destructive">
+          Error: {error.message}
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="flex items-center justify-between border-t px-4 py-2">
+        <div className="flex items-center gap-2">
           <Select
             value={modelProvider}
             onValueChange={(value) =>
@@ -186,31 +202,16 @@ export function ChatContainer({
               <SelectItem value="google">Google Gemini</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="flex items-center gap-2">
           <MCPStatus />
-          <Button variant="outline" size="sm" onClick={handleClearChat}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            New Chat
-          </Button>
         </div>
+        <Button variant="outline" size="sm" onClick={handleClearChat}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          New Chat
+        </Button>
       </div>
-
-      {/* Messages Area */}
-
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <ChatMessages messages={messages} onRegenerate={() => regenerate()} />
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="border-t bg-destructive/10 p-3 text-sm text-destructive">
-          Error: {error.message}
-        </div>
-      )}
 
       {/* Input Area */}
-      <div className="border-t p-4">
+      <div className="border-t px-4 py-3">
         <ChatInput
           value={input}
           onChange={setInput}

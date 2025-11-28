@@ -27,14 +27,20 @@ export async function createConversation(
     });
   }
 
+  // Generate title based on current time (HH:MM format)
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, "0");
+  const minutes = now.getMinutes().toString().padStart(2, "0");
+  const title = `${hours}:${minutes}`;
+
   const conversation = await db.conversation.create({
     data: {
       agentId: agent.id,
-      title: "New Conversation",
+      title,
     },
   });
 
-  return { id: conversation.id, title: conversation.title || "New Conversation" };
+  return { id: conversation.id, title: conversation.title || title };
 }
 
 /**
@@ -156,7 +162,9 @@ export async function listConversations() {
 /**
  * Delete a conversation and all its messages
  */
-export async function deleteConversation(conversationId: string): Promise<void> {
+export async function deleteConversation(
+  conversationId: string
+): Promise<void> {
   await db.conversation.delete({
     where: { id: conversationId },
   });
@@ -168,4 +176,3 @@ export async function deleteConversation(conversationId: string): Promise<void> 
 export function generateMessageId(): string {
   return generateId();
 }
-
