@@ -10,6 +10,7 @@ export function SWRProvider({ children }: { children: ReactNode }) {
     <SWRConfig
       value={{
         fetcher,
+        revalidateIfStale: false,
         revalidateOnFocus: false,
         revalidateOnReconnect: false,
       }}
@@ -18,4 +19,3 @@ export function SWRProvider({ children }: { children: ReactNode }) {
     </SWRConfig>
   );
 }
-

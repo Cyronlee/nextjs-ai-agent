@@ -1,3 +1,5 @@
+"use client";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -12,15 +14,15 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-export default function ChatLayout({
-  children,
-}: {
+interface AppLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex h-[calc(100vh-16px)] flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
@@ -37,9 +39,8 @@ export default function ChatLayout({
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex h-[calc(100vh-4rem)] flex-col">{children}</div>
+        <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
-

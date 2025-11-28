@@ -44,9 +44,15 @@ export function NavConversations() {
   const params = useParams();
   const currentConversationId = params.id as string;
 
-  const { data: conversations, error, isLoading } = useSWR<Conversation[]>(
-    "/api/conversations"
-  );
+  const {
+    data: conversations,
+    error,
+    isLoading,
+    isValidating,
+  } = useSWR<Conversation[]>("/api/conversations");
+
+  // Only show loading state on initial load (no data yet)
+  const showLoading = isLoading && !conversations;
 
   const handleCreateConversation = async () => {
     try {
@@ -59,10 +65,10 @@ export function NavConversations() {
       }
 
       const { id } = await response.json();
-      
+
       // Mutate the conversations list to refetch
       mutate("/api/conversations");
-      
+
       // Navigate to the new conversation
       router.push(`/chat/${id}`);
       toast.success("New conversation created");
@@ -113,7 +119,7 @@ export function NavConversations() {
         </div>
       </SidebarGroupLabel>
       <SidebarMenu>
-        {isLoading && (
+        {showLoading && (
           <SidebarMenuItem>
             <SidebarMenuButton disabled>
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -122,7 +128,7 @@ export function NavConversations() {
           </SidebarMenuItem>
         )}
 
-        {error && (
+        {error && !conversations && (
           <SidebarMenuItem>
             <SidebarMenuButton disabled>
               <span className="text-destructive text-sm">Failed to load</span>
@@ -185,4 +191,3 @@ export function NavConversations() {
     </SidebarGroup>
   );
 }
-

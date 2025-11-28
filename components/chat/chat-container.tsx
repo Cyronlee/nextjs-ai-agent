@@ -132,8 +132,9 @@ export function ChatContainer({
         parts: [{ type: "text", text: input }, ...fileParts],
       });
 
-      // Clear input only, keep files for the session
+      // Clear input and files after sending
       setInput("");
+      setFiles([]);
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message with files");
@@ -196,7 +197,10 @@ export function ChatContainer({
       </div>
 
       {/* Messages Area */}
-      <ChatMessages messages={messages} className="flex-1" />
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <ChatMessages messages={messages} />
+      </div>
 
       {/* Error Display */}
       {error && (
