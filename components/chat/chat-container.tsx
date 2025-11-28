@@ -76,7 +76,7 @@ export function ChatContainer({
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
 
-  const { messages, sendMessage, error } = useChat<ChatMessage>({
+  const { messages, sendMessage, error, regenerate } = useChat<ChatMessage>({
     id: conversationId,
     messages: initialMessages,
     transport: new DefaultChatTransport({
@@ -199,7 +199,7 @@ export function ChatContainer({
       {/* Messages Area */}
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <ChatMessages messages={messages} />
+        <ChatMessages messages={messages} onRegenerate={() => regenerate()} />
       </div>
 
       {/* Error Display */}
